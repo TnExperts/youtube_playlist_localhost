@@ -10,6 +10,7 @@ TASKKILL /IM VLC.exe 1>NUL 2>NUL
 
 IF ["%Link%"] neq [""] ECHO ...Fetching Playlist Urls to yt-playlist.lst... 
 IF ["%Link%"] neq [""] php\php yt_get_playlist.php "%Link%" > yt-playlist.lst
+if NOT EXIST yt-playlist.lst exit
 
 ECHO  ..Init VLC-OBS Bridge on http://localhost:8080/gogo.ts
 echo @echo off >vlc_start.bat
@@ -31,6 +32,6 @@ REM # yt_get_prot.php ::> https://gist.github.com/arjunae/6737ecf40956efa3fe4c4d
 REM # Quality : mp4-640x360 (Format No 18). Change the php script if you need the Data in another Format.
 for /f %%i in ('php\php yt_get_protID.php %youtube_id%') do set Link=%%i
 ECHO  ..Stream https://www.youtube.com/watch?v=%youtube_id%
-start /WAIT /MIN /ABOVENORMAL vlc.exe --vout=dummy --volume 0 --playlist-enqueue "%Link%"  --sout-keep --sout=#duplicate{dst=std{access=file,mux=ts,dst=stream.ts},dst=display}"
+start /WAIT /MIN /ABOVENORMAL vlc.exe --vout=dummy --volume 0 --playlist-enqueue "%Link%"  --sout-keep --sout=#duplicate{dst=std{access=file,mux=ts,dst=stream.ts},dst=display} vlc://quit
 exit /b 0 
 :end_sub
