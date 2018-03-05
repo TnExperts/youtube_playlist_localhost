@@ -400,7 +400,13 @@ if(PHP_SAPI === 'cli') {
 for($i = 0; $i < sizeof($videoList); $i++):
 	$yt = new YouTubeDownloader();
 	$links = $yt->getDownloadLinks("https://www.youtube.com/watch?v=$videoList[$i]");
-	print($links[18]["url"]);		// 17 will return the smallest sized Video Source.3gp 
+	$quality=18; // 17 will return the smallest sized Video Source.3gp 18/36 are most common 360px Vids.
+
+	if($links[$quality] != 0) {
+		print($links[$quality]["url"]);		
+	} else {
+		print($links[0]["url"]);		
+	}
 endfor;
 
 ?>
