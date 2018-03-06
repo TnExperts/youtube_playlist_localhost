@@ -1,12 +1,12 @@
 <?php
 //  Simple and Fast YouTube Playlist fetcher which does not depend on a YouTube API Key. 
-//  Alpha 0.6 - Marcedo@habMalNeFrage.de < doesnt really like php.
+//  Beta 0.9 - Marcedo@habMalNeFrage.de < doesnt really like php.
 //
 // Handles 2 Playlist types:
-// 'https://www.youtube.com/playlist?list='.$playlistID; And
+// 'https://www.youtube.com/playlist?list=' And
 // "https://www.youtube.com/watch?v=hJc9Fko0mf4&list=RDEMQOsjgqFblO5mznM7DiOx4g"
 // ~ Knows about side and bottom attached Playlist
-// ~ limited error tolerance and handling
+// ~ some error tolerance and error recovery. Codes:100=NoUrl, 101=ApiError
 // ~ Output Format:  videoID;'VideoTitle' 
 
 	if(PHP_SAPI !== 'cli') { 
@@ -68,8 +68,8 @@
 	foreach( $page->attributes as $searchNode )
 	{
 		if(strpos($searchNode->nodeValue,"oops-content")!==false) {
-		print "Api Error";
-		exit(102);
+		print $PlaylistID.";Api Error";
+		exit(101);
 		}
 	} 
 	
