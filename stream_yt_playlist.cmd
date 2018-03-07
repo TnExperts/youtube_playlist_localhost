@@ -8,10 +8,11 @@ REM .Written to survive BlackHoles.
 setlocal enabledelayedexpansion
 SET /P Link=YouTube Link , Playlist or ID ? (empty to use last generated list) : 
 TASKKILL /IM VLC.exe 1>NUL 2>NUL
+TASKKILL /IM php.exe 1>NUL 2>NUL
 
-IF ["%Link%"] neq [""] ECHO ...Fetching Playlist Urls to yt-playlist.lst... 
-IF ["%Link%"] neq [""] php\php yt_get_playlist.php "%Link%" > yt-playlist.lst
-if NOT EXIST yt-playlist.lst exit
+IF ["%Link%"] neq [""] ECHO ...Fetching Playlist Urls to yt_playlist.lst... 
+IF ["%Link%"] neq [""] php\php yt_get_playlist.php "%Link%" > yt_playlist.txt
+if NOT EXIST yt_playlist.txt exit
 
 ECHO  ..Init VLC-OBS Bridge on http://localhost:8080/gogo.ts
 echo @echo off >vlc_start.bat
@@ -22,10 +23,13 @@ echo REM # start /MIN /ABOVENORMAL vlc.exe -I dummy --no-interact  --one-instanc
 echo exit >>vlc_start.bat 
 start  /MIN vlc_start.bat
 
-for /F "delims=; eol=# tokens=1,2*" %%e IN (yt-playlist.lst) do ( :: Iterate through downloaded playlist ::
+::ECHO  ..Streaming YouNow Comments to yn-comments.txt
+::start  younow\yn_comments.cmd
+
+for /F "delims=; eol=# tokens=1,2*" %%e IN (yt_playlist.txt) do ( :: Iterate through downloaded playlist ::
 	call set youtube_id=%%e
-	::ECHO  ..Stream https://www.youtube.com/watch?v=%%e 
-	ECHO  ..Stream %%f
+	ECHO  ..Stream https://www.youtube.com/watch?v=%%e 
+	ECHO  ..Pumuckl: %%f > yt_title.txt
 	call :sub_stream_file
 )
 

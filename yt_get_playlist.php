@@ -2,10 +2,9 @@
 //  Simple and Fast YouTube Playlist fetcher which does not depend on a YouTube API Key. 
 //  Beta 0.9 - Marcedo@habMalNeFrage.de < doesnt really like php.
 //
-// Handles 2 Playlist types:
-// 'https://www.youtube.com/playlist?list=' And
-// "https://www.youtube.com/watch?v=hJc9Fko0mf4&list=RDEMQOsjgqFblO5mznM7DiOx4g"
-// ~ Knows about side and bottom attached Playlist
+// Handles 1 from 2 Playlist types:
+// 'https://www.youtube.com/playlist?list='   ~ Knows about side attached Playlist
+// > Bottom attached Playlists , fetched via xhr, are not handled by that script. 
 // ~ some error tolerance and error recovery. Codes:100=NoUrl, 101=ApiError
 // ~ Output Format:  videoID;'VideoTitle' 
 
@@ -60,39 +59,28 @@
 	}
 	
 	// # Debug Dump HTML 
-	 // print($doc->saveHTML());
+	// print($doc->saveHTML());
 	
-	// Note back, if the playlist doesnt exist.
+	// Note back if the playlist doesnt exist.
 	// Also happens when searching for some Abo content Playlists.
 	$page=$doc->getElementById("page");
 	foreach( $page->attributes as $searchNode )
 	{
 		if(strpos($searchNode->nodeValue,"oops-content")!==false) {
-		print $PlaylistID.";Api Error";
-		exit(101);
+			print ($playlistID.";Api_Error");
+			exit(101);
 		}
 	} 
 	
 	// Wow. what a rudimentary HTML Parser... 
 	// For now just search for links in both, the side and the bottom attached list.
 	
-	// that Part matches the bottom attached list.
-	$classname="yt-uix-scroller-scroll-unit";
-	$finder = new DomXPath($doc);
-	$spaner = $finder->query("//*[contains(@class, '$classname')]");
-
-	foreach( $spaner as $searchNode )
-	{
-		$video_id = $searchNode->getAttribute('data-video-id');
-		$video_title = $searchNode->getAttribute('data-video-title');	
-		if ($video_id != "") print ($video_id.";'".$video_title."'".PHP_EOL);
-	} 
-	
-	// and heere. we match the side attached list.
+	// we match the side attached list.
 	$classname="pl-video";
 	$finder = new DomXPath($doc);
 	$spaner = $finder->query("//*[contains(@class, '$classname')]");
-	
+//	print($spaner->length." Items found");
+
 	foreach( $spaner as $searchNode )
 	{
 		$video_id = $searchNode->getAttribute('data-video-id');
