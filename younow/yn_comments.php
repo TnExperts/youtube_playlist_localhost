@@ -1,8 +1,9 @@
 <?php
 
 // Mir gehn die ganzen trolle/hater bei younow aufn Sack.
-// Der folgende Code ist ein Prototy zum Abfragen von Kommentaren (bei aktiven Broadcastern) 
-// Ausblick: Community gepflegte negativ listen / #TrollWatch Bot 
+// Der folgende Code ist ein Prototyp zum Abfragen von Kommentaren (bei aktiven Broadcastern) 
+// Version 0.6 alpha
+// Ausblick: Community gepflegte negativ listen / python #TrollWatch Bot 
 // Mar2018 Marcedo@habMalNeFrage.de
 
 $user = "Tho.";
@@ -18,7 +19,8 @@ curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 //curl_setopt($ch, CURLOPT_VERBOSE, 1);
 
 $num_comments=0;
-$content="";
+$all_comments="";
+$viewers=0;
 $page = curl_exec($ch);
 
 // younows Api returns json so parse that here
@@ -29,7 +31,11 @@ print("Waiting for User ". $user."'s Stream...");
 while ($json->errorCode!=0) {
 	time_sleep_until(microtime(true)+1); // non-Blocking 1second timer
 	print("😂");
+	$json=json_decode( curl_exec($ch));
 }
+
+print(PHP_EOL."Stream has started.".PHP_EOL);
+//print("URL: RTMP://".$json->host.$json->stream);
 
 while(property_exists ($json,"comments")){ 
 	time_sleep_until(microtime(true)+1); // non-Blocking 1second timer
@@ -42,10 +48,17 @@ while(property_exists ($json,"comments")){
 				foreach($json->comments as $key=>$comment) {
 				$line="{ ".$comment->name." }"." ' ".$comment->comment."'".PHP_EOL;
 				print($line);
-				$content=$content.$line;
-				file_put_contents("yn_comments.txt", $content);
+				$all_comments=$all_comments.$line;
+				file_put_contents("yn_comments.txt", $all_comments);
 			}
 		}
+		
+		// since its plain easy and interesting - notify if the streams viewer count changes
+		if($json->viewers > $viewers){
+			print("viewers: ".$json->viewers.PHP_EOL);
+			$viewers=$json->viewers;
+		}
+
 }
 print("Fin..");
 curl_close($ch);
