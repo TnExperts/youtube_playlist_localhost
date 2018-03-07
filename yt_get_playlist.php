@@ -59,7 +59,7 @@
 	}
 	
 	// # Debug Dump HTML 
-	// print($doc->saveHTML());
+	//print($doc->saveHTML());
 	
 	// Note back if the playlist doesnt exist.
 	// Also happens when searching for some Abo content Playlists.
@@ -73,19 +73,31 @@
 	} 
 	
 	// Wow. what a rudimentary HTML Parser... 
-	// For now just search for links in both, the side and the bottom attached list.
+	// For now just search for links in the side attached list.
 	
-	// we match the side attached list.
+	$classname="yt-uix-scroller-scroll-unit";
+	$finder = new DomXPath($doc);
+	$spaner = $finder->query("//*[contains(@class, '$classname')]");
+	//	print($spaner->length." Items found");
+
+	foreach( $spaner as $searchNode )
+	{
+		$video_id = $searchNode->getAttribute('data-video-id');
+		$video_title = $searchNode->getAttribute('data-video-title');
+		if ($video_id != "") print ($video_id.";'".$video_title."'".PHP_EOL);
+	}
+
 	$classname="pl-video";
 	$finder = new DomXPath($doc);
 	$spaner = $finder->query("//*[contains(@class, '$classname')]");
-//	print($spaner->length." Items found");
-
+	//	print($spaner->length." Items found");
+	
 	foreach( $spaner as $searchNode )
 	{
 		$video_id = $searchNode->getAttribute('data-video-id');
 		$video_title = $searchNode->getAttribute('data-title');
 		if ($video_id != "") print ($video_id.";'".$video_title."'".PHP_EOL);
 	} 
+	
 	libxml_use_internal_errors(false);
 ?>
