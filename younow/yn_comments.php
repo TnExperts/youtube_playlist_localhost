@@ -13,7 +13,7 @@ $url = "https://api.younow.com/php/api/broadcast/info/curId=0/user=".$user;
 $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($ch, CURLOPT_HEADER, 0);
+//curl_setopt($ch, CURLOPT_HEADER, 0);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 //curl_setopt($ch, CURLOPT_VERBOSE, 1);
@@ -21,12 +21,11 @@ curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 $num_comments=0;
 $all_comments="";
 $viewers=0;
-$page = curl_exec($ch);
 
 // younows Api returns json so parse that here
-$json=json_decode($page);
-
 // Above Interface is only available when the user does a broadcast. 
+$json=json_decode(curl_exec($ch));
+
 print("Waiting for User ". $user."'s Stream...");
 while ($json->errorCode!=0) {
 	time_sleep_until(microtime(true)+1); // non-Blocking 1second timer
@@ -45,21 +44,23 @@ while(property_exists ($json,"comments")){
 		$json=json_decode( curl_exec($ch));
 		$hash1=(md5(serialize($json)));
 		
-		//print($hash0.".".$hash1.PHP_EOL);
-		if($hash0!==$hash1){ // do we have new comments ?			
+		// do we have new comments ?
+		if($hash0!==$hash1){			
 				// Append the comment
 				foreach($json->comments as $key=>$comment) {
-				$line="{ ".$comment->name." }"." ' ".$comment->comment."'".PHP_EOL;
+				$line="{ ".$comment->name." }"." '".$comment->comment."'".PHP_EOL;
 				print($line);
 				$all_comments=$all_comments.$line;
-				file_put_contents("yn_comments.txt", $all_comments);
 			}
+				file_put_contents("yn_comments.txt", $all_comments);
+				$all_comments="";
 		}
 		
-		// since its plain easy and interesting - notify if the streams viewer count changes
+		// notify if the streams viewer count changes
 		if($json->viewers > $viewers){
-			print("viewers: ".$json->viewers.PHP_EOL);
+			$info="viewers: ".$json->viewers.PHP_EOL;
 			$viewers=$json->viewers;
+			file_put_contents("yn_comments.txt", $viewers,FILE_APPEND );
 		}
 }
 print("Fin..");
