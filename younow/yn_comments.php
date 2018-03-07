@@ -39,12 +39,15 @@ print(PHP_EOL."Stream has started.".PHP_EOL);
 
 while(property_exists ($json,"comments")){ 
 	time_sleep_until(microtime(true)+1); // non-Blocking 1second timer
+	$hash0=(md5(serialize($json)));
+	
 		// retrieve comments from php api.
 		$json=json_decode( curl_exec($ch));
-		// we have new comments ?
-		if( count ($json->comments)>$num_comments){
-			$num_comments=count ($json->comments);
-			// Append the comment
+		$hash1=(md5(serialize($json)));
+		
+		//print($hash0.".".$hash1.PHP_EOL);
+		if($hash0!==$hash1){ // do we have new comments ?			
+				// Append the comment
 				foreach($json->comments as $key=>$comment) {
 				$line="{ ".$comment->name." }"." ' ".$comment->comment."'".PHP_EOL;
 				print($line);
@@ -58,7 +61,6 @@ while(property_exists ($json,"comments")){
 			print("viewers: ".$json->viewers.PHP_EOL);
 			$viewers=$json->viewers;
 		}
-
 }
 print("Fin..");
 curl_close($ch);

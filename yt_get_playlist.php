@@ -4,7 +4,7 @@
 //
 // Handles 1 from 2 Playlist types:
 // 'https://www.youtube.com/playlist?list='   ~ Knows about side attached Playlist
-// > Bottom attached Playlists , fetched via xhr, are not handled by that script. 
+// > Playlists which are fetched via xhr are not handled by that script. 
 // ~ some error tolerance and error recovery. Codes:100=NoUrl, 101=ApiError
 // ~ Output Format:  videoID;'VideoTitle' 
 
