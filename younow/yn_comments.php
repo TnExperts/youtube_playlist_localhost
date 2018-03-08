@@ -38,11 +38,11 @@ print(PHP_EOL."Stream has started.".PHP_EOL);
 
 while(property_exists ($json,"comments")){ 
 	time_sleep_until(microtime(true)+1); // non-Blocking 1second timer
-	$hash0=(md5(serialize($json)));
+	$hash0=(md5(serialize($json->comments)));
 	
 		// retrieve comments from php api.
 		$json=json_decode( curl_exec($ch));
-		$hash1=(md5(serialize($json)));
+		$hash1=(md5(serialize($json->comments)));
 		
 		// do we have new comments ?
 		if($hash0!==$hash1){			
