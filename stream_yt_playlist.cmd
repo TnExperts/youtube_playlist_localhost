@@ -16,7 +16,8 @@ if NOT EXIST yt_playlist.txt exit
 
 ECHO  ..Init VLC-OBS Bridge on http://localhost:8080/gogo.ts
 echo @echo off >vlc_start.bat
-echo  :wait if not EXIST stream.ts  ( goto :wait ) >> vlc_start.bat
+echo :wait  >> vlc_start.bat
+echo if not EXIST stream.ts  ( goto :wait ) >> vlc_start.bat
 echo start /MIN /ABOVENORMAL vlc.exe -I dummy  --one-instance --playlist-enqueue "stream.ts" --loop --sout-keep --sout=#gather:http{dst=:8080/gogo.ts} >>vlc_start.bat
 echo REM # Using FlashVideo can be seen as "more compatible" but also does requires more processing time.  >>vlc_start.bat
 echo REM # start /MIN /ABOVENORMAL vlc.exe -I dummy --no-interact  --one-instance --playlist-enqueue "stream.ts" --loop --sout-keep --sout=#gather:http{mux=ffmpeg{mux=flv},dst=:8080/bla}  >>vlc_start.bat
