@@ -48,9 +48,18 @@
 		$feedURL= $url;
 	}
 	
+	// Init Curl
+	$ch = curl_init($feedURL);
+	curl_setopt($ch, CURLOPT_USERAGENT, 'YetAnotherPlaylistParser');
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+	//curl_setopt($ch, CURLOPT_VERBOSE, 1);
+
 	libxml_use_internal_errors(true);
 	$doc = new DOMDocument();
-	$doc->loadHTMLFile($feedURL);
+	$doc->loadHTML(curl_exec($ch));
+
 	if (!$doc) {
 	 foreach (libxml_get_errors() as $error) {
 	 print(PHP_EOL);
@@ -59,8 +68,12 @@
 	}
 	
 	// # Debug Dump HTML 
-	//print($doc->saveHTML());
+	print($doc->saveHTML());
 	
+	// Note back if the playlist doesnt exist.
+	// Also happens when searching for some Abo content Playlists.
+	
+		
 	// Note back if the playlist doesnt exist.
 	// Also happens when searching for some Abo content Playlists.
 	$page=$doc->getElementById("page");
@@ -71,7 +84,7 @@
 			exit(101);
 		}
 	} 
-	
+
 	// Wow. what a rudimentary HTML Parser... 
 	// For now just search for links in the side attached list.
 	

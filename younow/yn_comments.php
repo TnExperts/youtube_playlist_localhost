@@ -2,7 +2,7 @@
 
 // Mir gehn die ganzen trolle/hater bei younow aufn Sack.
 // Der folgende Code ist ein Prototyp zum Abfragen von Kommentaren (bei aktiven Broadcastern) 
-// Version 0.6 alpha
+// Version 0.8 alpha
 // Ausblick: Community gepflegte negativ listen / python #TrollWatch Bot 
 // Mar2018 Marcedo@habMalNeFrage.de
 
@@ -58,9 +58,9 @@ while(property_exists ($json,"comments")){
 		
 		// notify if the streams viewer count changes
 		if($json->viewers > $viewers){
-			$info="viewers: ".$json->viewers.PHP_EOL;
 			$viewers=$json->viewers;
-			file_put_contents("yn_comments.txt", $viewers,FILE_APPEND );
+			$info="viewers: ".$json->viewers.PHP_EOL;
+			file_put_contents("yn_comments.txt", $info,FILE_APPEND );
 		}
 }
 print("Fin..");
