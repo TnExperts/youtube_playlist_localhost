@@ -29,9 +29,9 @@
 	// Playlist id is 12 or more characters in length
 	$playlist_pattern = '~(?:http|https|)(?::\/\/|)(?:www.|)(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/ytscreeningroom\?v=|\/feeds\/api\/videos\/|\/user\S*[^\w\-\s]|\S*[^\w\-\s]))([\w\-]{12,})[a-z0-9;:@#?&%=+\/\$_.-]*~i';
 	$playlistID = (preg_replace($playlist_pattern, '$1', $url));
-
-	// ^^ above stuff seems to interpret a 11 video id as a playlist ?!
-	// Check and cleanse Link
+	// ^^ above stuff seems to interpret a 11 ch video id as a playlist ?!
+	
+	// ..so check and cleanse Link
 	if(strlen($playlistID) <12) $playlistID="";
 	if(strpos($playlistID,$videoID) !== false) $videoID="";
 		
@@ -69,12 +69,8 @@
 	
 	// # Debug Dump HTML 
 	//print($doc->saveHTML());
-	
-	// Note back if the playlist doesnt exist.
-	// Also happens when searching for some Abo content Playlists.
-	
 		
-	// Note back if the playlist doesnt exist.
+	// Note back if the playlist doesnt exist. (has attr "oops-content")
 	// Also happens when searching for some Abo content Playlists.
 	$page=$doc->getElementById("page");
 	foreach( $page->attributes as $searchNode )
@@ -86,7 +82,7 @@
 	} 
 
 	// Wow. what a rudimentary HTML Parser... 
-	// For now just search for links in the side attached list.
+	// For now just search for links in yt-uix-scroller-scroll-unit and pl-video
 	
 	$classname="yt-uix-scroller-scroll-unit";
 	$finder = new DomXPath($doc);

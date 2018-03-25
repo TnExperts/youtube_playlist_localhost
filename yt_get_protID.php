@@ -67,7 +67,6 @@ function sig_js_decode($player_html){
 
 
 
-
 // YouTube is capitalized twice because that's how youtube itself does it:
 // https://developers.google.com/youtube/v3/code_samples/php
 class YouTubeDownloader {

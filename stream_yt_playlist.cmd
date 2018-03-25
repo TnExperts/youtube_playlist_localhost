@@ -3,7 +3,7 @@ REM Streams a YouTube Link, an ID, or even a Playlist to a VLC Instance.
 REM Make it available on http://localhost:8080/gogo.ts
 REM removed dependency to "youtube-dl" and "ffmpeg"
 REM Mar 2018, Marcedo@habMalNeFrage.de
-REM .Written to survive BlackHoles.
+REM .Engeneered to survive BlackHoles :)
 
 setlocal enabledelayedexpansion
 SET /P Link=YouTube Link , Playlist or ID ? (empty to use last generated list) : 
@@ -18,6 +18,7 @@ for /f "tokens=2 delims=:" %%i in ('find /V /C "" yt_playlist.txt') do echo  ..F
 echo @echo off >vlc_start.bat
 echo :wait  >> vlc_start.bat
 echo if not EXIST stream.ts goto :wait >> vlc_start.bat
+echo REM simple trick to just send a file as a ts stream - without further processing. 
 echo start /MIN vlc.exe -I dummy  --one-instance --playlist-enqueue "stream.ts" --loop --sout-keep --sout=#gather:http{dst=:8080/gogo.ts} >>vlc_start.bat
 echo REM # Using FlashVideo can be seen as "more compatible" but also does requires more processing time.  >>vlc_start.bat
 echo REM # start /MIN /ABOVENORMAL vlc.exe -I dummy --no-interact  --one-instance --playlist-enqueue "stream.ts" --loop --sout-keep --sout=#gather:http{mux=ffmpeg{mux=flv},dst=:8080/bla}  >>vlc_start.bat
