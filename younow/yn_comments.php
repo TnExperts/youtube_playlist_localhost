@@ -25,12 +25,13 @@ $num_comments=0;
 $all_comments="";
 $viewers=0;
 
-// younows Api returns json so parse that here
+// younows undocumented api returns json so parse that here.
 // Above Interface is only available when the user does a broadcast. 
 $json=json_decode(curl_exec($ch));
 
 print("Waiting for User ". $user."'s Stream...");
 while ($json->errorCode!=0) {
+	// it even doesnt seem to have a callback interface to use, so just poll.
 	time_sleep_until(microtime(true)+1); // non-Blocking 1second timer
 	print("😂");
 	$json=json_decode( curl_exec($ch));

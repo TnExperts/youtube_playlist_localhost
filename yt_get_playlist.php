@@ -4,7 +4,7 @@
 //
 // Handles 1 from 2 Playlist types:
 // 'https://www.youtube.com/playlist?list='   ~ Knows about side attached Playlist
-// > Playlists which are fetched via xhr are not handled by that script. 
+// > Playlists which are fetched via xhr are not (officially) handled by that script. 
 // ~ some error tolerance and error recovery. Codes:100=NoUrl, 101=ApiError
 // ~ Output Format:  videoID;'VideoTitle' 
 
@@ -29,9 +29,9 @@
 	// Playlist id is 12 or more characters in length
 	$playlist_pattern = '~(?:http|https|)(?::\/\/|)(?:www.|)(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/ytscreeningroom\?v=|\/feeds\/api\/videos\/|\/user\S*[^\w\-\s]|\S*[^\w\-\s]))([\w\-]{12,})[a-z0-9;:@#?&%=+\/\$_.-]*~i';
 	$playlistID = (preg_replace($playlist_pattern, '$1', $url));
-	// ^^ above stuff seems to interpret a 11 ch video id as a playlist ?!
-	
-	// ..so check and cleanse Link
+
+	// ^^ above stuff seems to interpret a 11 char video id as a playlist ?!
+	// Check and cleanse Link
 	if(strlen($playlistID) <12) $playlistID="";
 	if(strpos($playlistID,$videoID) !== false) $videoID="";
 		
@@ -70,7 +70,7 @@
 	// # Debug Dump HTML 
 	//print($doc->saveHTML());
 		
-	// Note back if the playlist doesnt exist. (has attr "oops-content")
+	// Note back if the playlist doesnt exist.
 	// Also happens when searching for some Abo content Playlists.
 	$page=$doc->getElementById("page");
 	foreach( $page->attributes as $searchNode )
@@ -82,7 +82,7 @@
 	} 
 
 	// Wow. what a rudimentary HTML Parser... 
-	// For now just search for links in yt-uix-scroller-scroll-unit and pl-video
+	// For now just search for links in the side attached list.
 	
 	$classname="yt-uix-scroller-scroll-unit";
 	$finder = new DomXPath($doc);
