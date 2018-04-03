@@ -15,6 +15,8 @@ IF ["%Link%"] neq [""] php\php yt_get_playlist.php "%Link%" > yt_playlist.txt
 if NOT EXIST yt_playlist.txt exit
 for /f "tokens=2 delims=:" %%i in ('find /V /C "" yt_playlist.txt') do echo  ..Found%%i Items.
 
+:: WorkAround - for VLC Version 3.01 OBS-Playlist Bug. Should be fixed in 3.03
+
 echo @echo off >vlc_start.bat
 echo :wait  >> vlc_start.bat
 echo if not EXIST stream.ts goto :wait >> vlc_start.bat
