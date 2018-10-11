@@ -10,6 +10,7 @@ $user = "Tho.";
 $user = "PIOK";
 $user = "Youtuber_LMPI";
 $user = "_...Vero..._";
+$user ="Der_boese_Wolf";
 
 $url = "https://api.younow.com/php/api/broadcast/info/curId=0/user=".$user;
 

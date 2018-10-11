@@ -5,6 +5,10 @@ Make it available on http://localhost:8080/gogo.ts (for use with eg LiveStreamin
 - removed dependency to "youtube-dl" and "ffmpeg"
 - Added a simple YouNow Comment Interface for use with OBS Text Feature.  
 
+
+-> Youtube switched some internal logic. Currently testing an api-Key based Method.
+
+
 -> OBS Post: https://obsproject.com/forum/resources/obs_adfree_youtube_playlists.642/
 
 -> Author: Marcedo@habMalNeFrage.de
@@ -12,3 +16,4 @@ Make it available on http://localhost:8080/gogo.ts (for use with eg LiveStreamin
 -> Date Mar 2018
 
 -> License: FreeBSD 3Clause
+

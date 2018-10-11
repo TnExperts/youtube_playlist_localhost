@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 1>NUL
 del /f yn_comments.txt
-start /min /LOW ..\php\php yn_comments.php
+..\php\php.exe yn_comments.php
 exit
