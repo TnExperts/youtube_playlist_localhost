@@ -16,8 +16,8 @@ stream_to_localhost:
 
 -------------------
 
--> OBS Post: https://obsproject.com/forum/resources/obs_adfree_youtube_playlists.642/
--> Author: Marcedo@habMalNeFrage.de
--> Date Okt 2018
--> License: FreeBSD 3Clause
+-- OBS Post: https://obsproject.com/forum/resources/obs_adfree_youtube_playlists.642/
+-- Author: Marcedo@habMalNeFrage.de
+-- Date Okt 2018
+-- License: FreeBSD 3Clause
 

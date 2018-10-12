@@ -49,6 +49,7 @@
 	if(strpos($playlistId,$videoId) !== false) $videoID="";
 		
 	//Okay -We have a VideoLink. So just print and bail.
+	//todo: sanity check for non-existant video link
 	if ($videoId !== "" && $playlistId=="") {
 		print $videoId.PHP_EOL;
 		exit(0);
@@ -74,9 +75,10 @@
 	
 	$nextPageToken=0;
 	do {
-				$json=json_decode($http->get($restquery));	
+				$json=json_decode($http->get($restquery));
+				if (!property_exists($json,"items")) {exit(101);}
 				foreach($json->items as $key) {
-					print ($key->snippet->resourceId->videoId."'".$key->snippet->title."'".PHP_EOL);
+					print ($key->snippet->resourceId->videoId.";'".$key->snippet->title."'".PHP_EOL);
 				}
 				if (property_exists($json,"nextPageToken")) {
 					$nextPageToken=$json->nextPageToken;
