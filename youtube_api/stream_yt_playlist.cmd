@@ -5,11 +5,18 @@ REM Oct 2018, Marcedo@habMalNeFrage.de
 REM .Engeneered to survive BlackHoles :)
 
 setlocal enabledelayedexpansion
-set PATH=%PATH%;C:\Program Files\VideoLAN\VLC
+set PATH=%PATH%;C:\Program Files\VideoLAN\VLC;C:\Program Files (x86)\VideoLAN\VLC
 set php_bin=..\php\php.exe 
 set link=%1
 set windowTitle=_Playlist_Streamer_
 TITLE %windowTitle%
+
+where /Q vlc.exe
+IF [%ERRORLEVEL%] gtr [0] (
+echo Please install VLC first. -> http://www.videolan.org/
+pause
+exit
+)
 
 echo        --== Route a youtube htttp stream via localhost ==--
 IF ["%link%"] equ [""] SET /P Link=YouTube Link , Playlist or ID ? (empty to use last generated list) : 
@@ -34,7 +41,7 @@ start /MIN cmd.exe /c wd.cmd
 
 for /F "delims=; eol=# tokens=1,2*" %%e IN (yt_playlist.txt) do ( :: Iterate through downloaded playlist ::
 	call set youtube_id=%%e
-	ECHO  ..Stream https://www.youtube.com/watch?v=%%e 
+	ECHO  ..Stream https://www.youtube.com/watch?v=%%e %%f
 	ECHO  ..Pumuckl: %%f > yt_title.txt
 	call :sub_stream_file
 )
