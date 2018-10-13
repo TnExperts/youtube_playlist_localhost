@@ -4,6 +4,7 @@ REM removed dependency to "youtube-dl" and "ffmpeg"
 REM Oct 2018, Marcedo@habMalNeFrage.de
 REM .Engeneered to survive BlackHoles :)
 
+chcp 65001 1>NUL
 setlocal enabledelayedexpansion
 set PATH=%PATH%;C:\Program Files\VideoLAN\VLC;C:\Program Files (x86)\VideoLAN\VLC
 set php_bin=..\php\php.exe 

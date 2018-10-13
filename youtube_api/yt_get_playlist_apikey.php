@@ -12,8 +12,8 @@
 
 	// php runtime variables
 	ini_set("default_charset", "UTF-8");
-	ini_set("memory_limit", "4000M");
-	ini_set("max_execution_time", 3600*5);
+	//ini_set("memory_limit", "4000M");
+	//ini_set("max_execution_time", 3600*5);
 
 	// NOTE: That APIv3 Key was created using the following guide: [youtubeapi-v3](https://developers.google.com/youtube/v3/getting-started)
 	$apikey = "AIzaSyBeeymyfYDFB1xaiHDH4lYtbSeeA0dG-Gg";
