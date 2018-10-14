@@ -16,8 +16,19 @@ function sig_js_decode($player_html){
 	// var l=f.sig||Xn(f.s)
 	// a.set("signature",Xn(c));return a
 	
-	// Sep2018 Youtube Update: CE=function(a){a=a.split("");BE.lW(a,58);BE.TM(a,1);BE.e9(a,63);BE.TM(a,2);BE.lW(a,8);BE.lW(a,21);return a.join("")};
-	// todo: rewrite regexp.
+		/* Sep2018 Youtube Update: 
+		enUS:		
+		var Bx={NI:function(a,b){a.splice(0,b)},jl:function(a){a.reverse()},l5:function(a,b){var c=a[0];a[0]=a[b%a.length];a[b%a.length]=c}}
+		Cx=function(a){a=a.split("");Bx.jl(a,58);Bx.NI(a,2);Bx.l5(a,35);Bx.NI(a,2);Bx.jl(a,45);Bx.l5(a,4);Bx.jl(a,46);return a.join("")};
+	->	By=function(a,b,c){b=void 0===b?"":b;c=void 0===c?"":c;var d=new g.Dx(a);a.match(/https:\/\/yt.akamaized.net/)||d.set("alr","yes");c&&d.set(b,Cx(c));return d};
+
+		deDE: 
+		var aL={NI:function(a,b){a.splice(0,b)},jl:function(a){a.reverse()},l5:function(a,b){var c=a[0];a[0]=a[b%a.length];a[b%a.length]=c}}
+		bL=function(a){a=a.split("");aL.jl(a,58);aL.NI(a,2);aL.l5(a,35);aL.NI(a,2);aL.jl(a,45);aL.l5(a,4);aL.jl(a,46);return a.join("")};
+	->	$L=function(a,b,c){b=void 0===b?"":b;c=void 0===c?"":c;var d=new g.cL(a);a.match(/https:\/\/yt.akamaized.net/)||d.set("alr","yes");c&&d.set(b,bL(c));return d};
+		*/
+	
+	// todo: rewrite regexp ... after my headeaches gone ... Volunteers ?
 	if(preg_match('/signature",([a-zA-Z0-9$]+)\(/', $player_html, $matches)){
 		
 		$func_name = $matches[1];		
@@ -26,6 +37,7 @@ function sig_js_decode($player_html){
 		// extract code block from that function
 		// single quote in case function name contains $dollar sign
 		// xm=function(a){a=a.split("");wm.zO(a,47);wm.vY(a,1);wm.z9(a,68);wm.zO(a,21);wm.z9(a,34);wm.zO(a,16);wm.z9(a,41);return a.join("")};
+	
 		if(preg_match('/'.$func_name.'=function\([a-z]+\){(.*?)}/', $player_html, $matches)){
 			
 			$js_code = $matches[1];
