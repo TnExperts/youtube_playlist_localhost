@@ -26,7 +26,8 @@ TASKKILL /F /IM  php.exe 1>NUL 2>NUL
 
 IF ["%Link%"] neq [""]  ECHO ...Fetching Playlist Urls to yt_playlist.lst... 
 IF ["%Link%"] neq [""]  %php_bin% yt_get_playlist_apikey.php "%Link%" > yt_playlist.txt
-IF ["%Link%"] neq [""]  if ["%ERRORLEVEL%"] GTR ["0"] (goto err_api)
+IF ["%Link%"] neq [""]  if ["%ERRORLEVEL%"] EQU ["101"] (goto err_api_key)
+IF ["%Link%"] neq [""]  if ["%ERRORLEVEL%"] GTR ["101"] (goto err_api)
 
 if NOT EXIST yt_playlist.txt (goto err_playlist)
 for /f "tokens=2 delims=:" %%i in ('find /V /C "" yt_playlist.txt') do echo  ..Found%%i Items.
@@ -59,6 +60,14 @@ for /f %%i in ('%php_bin% yt_get_protID.php %youtube_id%') do set Link=%%i
 REM echo "%Link% : %youtube_id%"
 start /WAIT /MIN /ABOVENORMAL vlc.exe "%Link%" --sout=#duplicate{dst=std{access=file,mux=ts,dst=stream.ts},dst=display} vlc://quit
 exit /b 0
+
+:err_api_key
+echo ... yt_get_playlist_apikey.php:
+echo ... Please get a free Youtube apikey first.
+echo ... see https://developers.google.com/youtube/v3/getting-started
+echo ... stop ...
+pause
+exit
 
 :err_api
 echo ...Error connecting to youtube API. Exitcode: %ERRORLEVEL% 

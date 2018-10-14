@@ -3,7 +3,11 @@
 // Modified to be command line Invoked on a youTube ID or Link.
 // Returns the fully qualified URL to the video source 
 // Example: yt_get_prot D2v8kI01xDI
-
+// OKT 2018 
+// simplify Code
+// Force specific player origin line230
+// Add some more verbose Formats
+//
 
 // utils.php
 function sig_js_decode($player_html){
@@ -11,6 +15,9 @@ function sig_js_decode($player_html){
 	// what javascript function is responsible for signature decryption?
 	// var l=f.sig||Xn(f.s)
 	// a.set("signature",Xn(c));return a
+	
+	// Sep2018 Youtube Update: CE=function(a){a=a.split("");BE.lW(a,58);BE.TM(a,1);BE.e9(a,63);BE.TM(a,2);BE.lW(a,8);BE.lW(a,21);return a.join("")};
+	// todo: rewrite regexp.
 	if(preg_match('/signature",([a-zA-Z0-9$]+)\(/', $player_html, $matches)){
 		
 		$func_name = $matches[1];		
@@ -66,7 +73,6 @@ function sig_js_decode($player_html){
 }
 
 
-
 // YouTube is capitalized twice because that's how youtube itself does it:
 // https://developers.google.com/youtube/v3/code_samples/php
 class YouTubeDownloader {
@@ -75,28 +81,44 @@ class YouTubeDownloader {
 	private $cookie_dir;
 	
 	private $itag_info = array(
-	
+		5 => "FLV 400x240",
+		6 => "FLV 450x240",
+		13 => "3GP Mobile",
+		17 => "3GP 144p",
 		18 => "MP4 360p",
 		22 => "MP4 720p (HD)",
+		34 => "FLV 360p",
+		35 => "FLV 480p",
+		36 => "3GP 240p",
 		37 => "MP4 1080",
 		38 => "MP4 3072p",
-		
-		// questionable MP4s
+		43 => "WebM 360p",
+		44 => "WebM 480p",
+		45 => "WebM 720p",
+		46 => "WebM 1080p",
 		59 => "MP4 480p",
 		78 => "MP4 480p",
-	
-		43 => "WebM 360p",
-		
-		17 => "3GP 144p"
+		82 => "MP4 360p 3D",
+		83 => "MP4 480p 3D",
+		84 => "MP4 720p 3D",
+		85 => "MP4 1080p 3D",
+		91 => "MP4 144p",
+		92 => "MP4 240p HLS",
+		93 => "MP4 360p HLS",
+		94 => "MP4 480p HLS",
+		95 => "MP4 720p HLS",
+		96 => "MP4 1080p HLS",
+		100 => "WebM 360p 3D",
+		101 => "WebM 480p 3D",
+		102 => "WebM 720p 3D",
+		120 => "WebM 720p 3D",
+		127 => "TS Dash Audio 96kbps",
+		128 => "TS Dash Audio 128kbps"
 	);
 	
 	function __construct(){
 		$this->storage_dir = sys_get_temp_dir();
 		$this->cookie_dir = sys_get_temp_dir();
-	}
-	
-	function setStorageDir($dir){
-		$this->storage_dir = $dir;
 	}
 	
 	// what identifies each request? user agent, cookies...
@@ -121,18 +143,14 @@ class YouTubeDownloader {
 		return $result;
 	}
 	
-	public static function head($url){
+	// extract youtube video_id from any piece of text
+	public function extractId($str){
 		
-		$ch = curl_init($url);
+		if(preg_match('/[a-z0-9_-]{11}/i', $str, $matches)){
+			return $matches[0];
+		}
 		
-		curl_setopt($ch, CURLOPT_HEADER, 1);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
-		curl_setopt($ch, CURLOPT_NOBODY, 1);
-		$result = curl_exec($ch);
-		curl_close($ch);
-		
-		return http_parse_headers($result);
+		return false;
 	}
 	
 	// html code of watch?v=aaa
@@ -177,99 +195,7 @@ class YouTubeDownloader {
 		return false;
 	}
 	
-	// this is in beta mode!!
-	public function stream($id){
-		
-		$links = $this->getDownloadLinks($id, "mp4");
-		
-		if(count($links) == 0){
-			die("no url found!");
-		}
-		
-		// grab first available MP4 link
-		$url = $links[0]['url'];
-		
-		// request headers
-		$headers = array(
-			'User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0'
-		);
-		
-		if(isset($_SERVER['HTTP_RANGE'])){
-			$headers[] = 'Range: '.$_SERVER['HTTP_RANGE'];
-		}
-		
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
-		
-		// we deal with this ourselves
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 0);
-		curl_setopt($ch, CURLOPT_HEADER, 0);
-		
-		// whether request to video success
-		$headers = '';
-		$headers_sent = false;
-		$success = false;
-		
-		curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($ch, $data) use (&$headers, &$headers_sent){
-			
-			$headers .= $data;
-			
-			// this should be first line
-			if(preg_match('@HTTP\/\d\.\d\s(\d+)@', $data, $matches)){
-				$status_code = $matches[1];
-				
-				// status=ok or partial content
-				if($status_code == 200 || $status_code == 206){
-					$headers_sent = true;
-					header(rtrim($data));
-				}
-				
-			} else {
-				
-				// only headers we wish to forward back to the client
-				$forward = array('content-type', 'content-length', 'accept-ranges', 'content-range');
-				
-				$parts = explode(':', $data, 2);
-				
-				if($headers_sent && count($parts) == 2 && in_array(trim(strtolower($parts[0])), $forward)){
-					header(rtrim($data));
-				}
-			}
-			
-			return strlen($data);
-		});
-		
-		// if response is empty - this never gets called
-		curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($curl, $data) use (&$headers_sent){
-			
-			if($headers_sent){
-				echo $data;
-				flush();
-			}
-			
-			return strlen($data);
-		});
-		
-		$ret = @curl_exec($ch);
-		$error = curl_error($ch);
-		curl_close($ch);
-		
-		// if we are still here by now, return status_code
-		return true;
-	}
-	
-	// extract youtube video_id from any piece of text
-	public function extractId($str){
-		
-		if(preg_match('/[a-z0-9_-]{11}/i', $str, $matches)){
-			return $matches[0];
-		}
-		
-		return false;
-	}
-	
+
 	// selector by format: mp4 360, 
 	private function selectFirst($links, $selector){
 		
@@ -306,12 +232,15 @@ class YouTubeDownloader {
 				return false;
 			}
 			
-			$html = $this->curl("https://www.youtube.com/watch?v={$video_id}");
+			// force a specific player origin
+			$html = $this->curl("https://www.youtube.com/watch?v={$video_id}"."&gl=deDE&hl=de&has_verified=1&bpctr=9999999999");
+			// us version $html = $this->curl("https://www.youtube.com/watch?v={$video_id}"."&gl=US&hl=en&has_verified=1&bpctr=9999999999");
 		}
 		
 		// age-gate
 		if(strpos($html, 'player-age-gate-content') !== false){
 			// nothing you can do folks...
+			print("AGE-Gated - stop ").PHP_EOL;
 			return false;
 		}
 		

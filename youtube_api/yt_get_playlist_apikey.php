@@ -16,8 +16,14 @@
 	//ini_set("max_execution_time", 3600*5);
 
 	// NOTE: That APIv3 Key was created using the following guide: [youtubeapi-v3](https://developers.google.com/youtube/v3/getting-started)
-	$apikey = "AIzaSyBeeymyfYDFB1xaiHDH4lYtbSeeA0dG-Gg";
-	// To avoid permanent abuse, ill revoke that somwhen in the future. Feel Free to create your own :)
+	$apikey = "";
+
+	if($apikey =="") { 
+		print(" yt_get_playlist_apikey".PHP_EOL);
+		print ("To avoid abuse, Feel Free to insert your own Youtube apikey :)".PHP_EOL);
+		print("see https://developers.google.com/youtube/v3/getting-started".PHP_EOL);
+		exit(101);
+	}
 	
 	// Parse argv - require console and minimum one parameter. 
 	if(PHP_SAPI !== 'cli') { 
@@ -29,7 +35,7 @@
 	} else {
 		$url = '';
 		print("no URL given");
-		exit(100); 
+		exit(102); 
 	}	
 
 	// Differenciate a single Video ID from a Playlist ID
