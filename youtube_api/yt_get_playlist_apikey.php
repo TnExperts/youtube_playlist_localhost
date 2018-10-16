@@ -16,8 +16,8 @@
 	//ini_set("max_execution_time", 3600*5);
 
 	// NOTE: That APIv3 Key was created using the following guide: [youtubeapi-v3](https://developers.google.com/youtube/v3/getting-started)
-	$apikey = "";
-
+		$apikey = "";
+	
 	if($apikey =="") { 
 		print(" yt_get_playlist_apikey".PHP_EOL);
 		print ("To avoid abuse, Feel Free to insert your own Youtube apikey :)".PHP_EOL);
@@ -78,7 +78,7 @@
 
 	// Now iterate and parse through all resultsets from the response.
 	$restquery = $playlistApi.$playlistId."&key=".$apikey;
-	
+	$json=[];
 	$nextPageToken=0;
 	do {
 				$json=json_decode($http->get($restquery));

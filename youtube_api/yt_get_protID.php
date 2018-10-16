@@ -9,6 +9,9 @@
 // Add some more verbose Formats
 //
 
+require_once "class.http.api.php";
+
+
 // utils.php
 function sig_js_decode($player_html){
 	
@@ -28,15 +31,19 @@ function sig_js_decode($player_html){
 	->	$L=function(a,b,c){b=void 0===b?"":b;c=void 0===c?"":c;var d=new g.cL(a);a.match(/https:\/\/yt.akamaized.net/)||d.set("alr","yes");c&&d.set(b,bL(c));return d};
 		*/
 	
-	// todo: rewrite regexp ... after my headeaches gone ... Volunteers ?
-	if(preg_match('/signature",([a-zA-Z0-9$]+)\(/', $player_html, $matches)){
-		
+	// Pattern -> .*;.&&..set(.,XX(.*));.*;};
+	$prefix ="/\W*.*;\w\&&\w\.set\(\w,";
+	$funcName = "([\$a-zA-Z0-9]{2})";
+	$suffix= "\(.*\).*;.*;/";
+
+	if(preg_match($prefix.$funcName.$suffix, $player_html, $matches)){
 		$func_name = $matches[1];		
 		$func_name = preg_quote($func_name);
-		
+	
 		// extract code block from that function
 		// single quote in case function name contains $dollar sign
 		// xm=function(a){a=a.split("");wm.zO(a,47);wm.vY(a,1);wm.z9(a,68);wm.zO(a,21);wm.z9(a,34);wm.zO(a,16);wm.z9(a,41);return a.join("")};
+		// -> bL=function(a){a=a.split("");aL.jl(a,58);aL.NI(a,2);aL.l5(a,35);aL.NI(a,2);aL.jl(a,45);aL.l5(a,4);aL.jl(a,46);return a.join("")};
 	
 		if(preg_match('/'.$func_name.'=function\([a-z]+\){(.*?)}/', $player_html, $matches)){
 			
@@ -88,9 +95,10 @@ function sig_js_decode($player_html){
 // YouTube is capitalized twice because that's how youtube itself does it:
 // https://developers.google.com/youtube/v3/code_samples/php
 class YouTubeDownloader {
-	
+		
 	private $storage_dir;
 	private $cookie_dir;
+	private $http;
 	
 	private $itag_info = array(
 		5 => "FLV 400x240",
@@ -131,28 +139,12 @@ class YouTubeDownloader {
 	function __construct(){
 		$this->storage_dir = sys_get_temp_dir();
 		$this->cookie_dir = sys_get_temp_dir();
+		$this->http=new httpServicesAPI();
+		$this->http->do_set_options();
 	}
 	
-	// what identifies each request? user agent, cookies...
-	public function curl($url){
-	
-		$ch = curl_init($url);
-		
-		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0');
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_HEADER, 0);
-		
-		//curl_setopt($ch, CURLOPT_COOKIEJAR, $tmpfname);
-		//curl_setopt($ch, CURLOPT_COOKIEFILE, $tmpfname);
-		
-		//curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-		
-		$result = curl_exec($ch);
-		curl_close($ch);
-		
-		return $result;
+	public function close(){
+		$this->http->close();
 	}
 	
 	// extract youtube video_id from any piece of text
@@ -194,7 +186,7 @@ class YouTubeDownloader {
 				
 			} else {
 				
-				$js_code = $this->curl($player_url);
+				$js_code = $this->http->get($player_url);
 				$instructions = sig_js_decode($js_code);
 				
 				if($instructions){
@@ -245,9 +237,9 @@ class YouTubeDownloader {
 			}
 			
 			// force a specific player origin
-			$html = $this->curl("https://www.youtube.com/watch?v={$video_id}"."&gl=deDE&hl=de&has_verified=1&bpctr=9999999999");
-			// us version $html = $this->curl("https://www.youtube.com/watch?v={$video_id}"."&gl=US&hl=en&has_verified=1&bpctr=9999999999");
-		}
+			$html = $this->http->get("https://www.youtube.com/watch?v={$video_id}"."&gl=deDE&hl=de&has_verified=1&bpctr=9999999999");
+			// us version $html = $http->get("https://www.youtube.com/watch?v={$video_id}"."&gl=US&hl=en&has_verified=1&bpctr=9999999999");
+			}
 		
 		// age-gate
 		if(strpos($html, 'player-age-gate-content') !== false){
@@ -273,8 +265,7 @@ class YouTubeDownloader {
 				} else if(isset($arr['signature'])){
 					$url = $url.'&signature='.$arr['signature'];
 				
-				} else if(isset($arr['s'])){
-					
+				} else if(isset($arr['s'])){					
 					// this is probably a VEVO/ads video... signature must be decrypted first! We need instructions for doing that
 					if(count($instructions) == 0){
 						$instructions = (array)$this->getInstructions($html);
@@ -347,6 +338,7 @@ for($i = 0; $i < sizeof($videoList); $i++):
 	} else {
 		exit(101); // Api Error
 	}
+	$yt->close();
 endfor;
 
 ?>
