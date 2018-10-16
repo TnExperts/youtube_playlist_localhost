@@ -239,6 +239,9 @@ class YouTubeDownloader {
 			// force a specific player origin
 			$html = $this->http->get("https://www.youtube.com/watch?v={$video_id}"."&gl=deDE&hl=de&has_verified=1&bpctr=9999999999");
 			// us version $html = $http->get("https://www.youtube.com/watch?v={$video_id}"."&gl=US&hl=en&has_verified=1&bpctr=9999999999");
+			
+			// todo: use a more proper way to get the FMT Map:
+			//https://www.youtube.com/get_video_info?video_id=$video_id&eurl=https://youtube.googleapis.com/v/$video_id
 			}
 		
 		// age-gate
