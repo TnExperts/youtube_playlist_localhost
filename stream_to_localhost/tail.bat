@@ -1,48 +1,55 @@
 @echo off
 
-REM watch for file Updates and print newly added Lines
-REM sortof Tail in pure batch.
+REM :::===---
+REM Watch for inFile's Updates and print newly added Lines
+REM -> a poor Mens Tail in pure batch.
+REM
 REM Marcedo@habMalNeFrage.de
+REM https://github.com/arjunae/youtube_playlist_localhost/tree/master/stream_to_localhost 
+REM Lic: BSD3Clause
+REM :::===---
 
-SETLOCAL ENABLEEXTENSIONS
-SETLOCAL ENABLEDELAYEDEXPANSION
+setlocal ENABLEEXTENSIONS
+setlocal ENABLEDELAYEDEXPANSION
 
-set FileName="new.txt"
-if not exist %FileName% exit
-
-echo Watchin %FileName% for new lines
-
-SET count=1 
+set FileName=%1
+REM set FileName="new.txt"
+SET count=0
 SET trigger=0
-FOR %%A IN (%FileName%) DO SET FileSize=%%~zA
+IF NOT EXIST %FileName% EXIT
 
-::Check for File Updates
-set oldFileSize=%FileSize%
-:loop
+:: store inital Files size in bytes
+echo Watchin %FileName% for new lines
 FOR %%A IN (%FileName%) DO SET FileSize=%%~zA
-if %oldFileSize% neq %FileSize% (
-	::echo file updated
-	SET count=0
-	call :tail
-	set oldFileSize=%FileSize%
-	)
+set oldFileSize=%FileSize%
+
+REM Now check for File Updates once per second.
+:loop
+	timeout /T 1 1>NUL
+	FOR %%A IN (%FileName%) DO SET FileSize=%%~zA
+	IF %oldFileSize% NEQ %FileSize% (
+		::echo ..file update...
+		set LineCount=0
+		call :readFile
+		set oldFileSize=%FileSize%
+		)
 goto :loop
 
-:: Print newly added Lines
-:tail
-for /f  "usebackq tokens=*" %%b in (`type %FileName%`) do (
-    set line=%%b
-		call :cnt
-  )
-exit /b 0
+REM Iterate through and print newly added Lines.
+REM based on Code by https://superuser.com/users/337631/davidpostill
+:readFile
+	FOR /f  "usebackq tokens=*" %%b IN (`type %FileName%`) DO (
+		set LineString=%%b
+		call :output
+	)
+	exit /b 0
 :done
 
-:cnt
-    set /a count+=1
-		rem echo %count% %trigger%
-		if %count% GTR %trigger% (
-			echo %line%
-			SET trigger=%count% 
-			)
-		exit /b 0
+:output
+	set /a LineCount+=1
+	IF %LineCount% GTR %trigger% (
+		echo %LineString%
+		set trigger=%LineCount% 
+		)
+	exit /b 0
 :done
