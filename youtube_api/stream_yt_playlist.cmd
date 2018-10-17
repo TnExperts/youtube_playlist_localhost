@@ -55,9 +55,9 @@ goto :ende
 REM # https://stackoverflow.com/questions/2323292/assign-output-of-a-program-to-a-variable
 REM # Quality : mp4-640x360 (standard Formats No 17/18/36). Extend yt_get_protID.php if you need the Data in another Format.
 for /f %%i in ('%php_bin% yt_get_protID.php %youtube_id%') do set Link=%%i
-REM echo "%Link% : %youtube_id%"
+REM  echo "%Link% : %youtube_id%"
+if [150] equ [%Link%]  (echo ..Skipping GeoBlocked %youtube_id%) 
 start /B /WAIT /MIN /ABOVENORMAL vlc.exe "%Link%" --verbose=1 --file-logging --logfile=vlc.log --sout=#duplicate{dst=std{access=file,mux=ts,dst=stream.ts},dst=display} vlc://quit
-
 exit /b 0
 
 :err_api_key

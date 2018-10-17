@@ -14,23 +14,15 @@ require_once "class.http.api.php";
 
 // utils.php
 function sig_js_decode($player_html){
-	
-	// what javascript function is responsible for signature decryption?
-	// var l=f.sig||Xn(f.s)
-	// a.set("signature",Xn(c));return a
-	
-		/* Sep2018 Youtube Update: 
-		enUS:		
-		var Bx={NI:function(a,b){a.splice(0,b)},jl:function(a){a.reverse()},l5:function(a,b){var c=a[0];a[0]=a[b%a.length];a[b%a.length]=c}}
-		Cx=function(a){a=a.split("");Bx.jl(a,58);Bx.NI(a,2);Bx.l5(a,35);Bx.NI(a,2);Bx.jl(a,45);Bx.l5(a,4);Bx.jl(a,46);return a.join("")};
-	->	By=function(a,b,c){b=void 0===b?"":b;c=void 0===c?"":c;var d=new g.Dx(a);a.match(/https:\/\/yt.akamaized.net/)||d.set("alr","yes");c&&d.set(b,Cx(c));return d};
+/*	
 
-		deDE: 
-		var aL={NI:function(a,b){a.splice(0,b)},jl:function(a){a.reverse()},l5:function(a,b){var c=a[0];a[0]=a[b%a.length];a[b%a.length]=c}}
-		bL=function(a){a=a.split("");aL.jl(a,58);aL.NI(a,2);aL.l5(a,35);aL.NI(a,2);aL.jl(a,45);aL.l5(a,4);aL.jl(a,46);return a.join("")};
-	->	$L=function(a,b,c){b=void 0===b?"":b;c=void 0===c?"":c;var d=new g.cL(a);a.match(/https:\/\/yt.akamaized.net/)||d.set("alr","yes");c&&d.set(b,bL(c));return d};
-		*/
-	
+- Extract the signature decryption Instructions 
+- Return them as arrray
+- used by sig_decipher
+*/
+
+	// Extract Signature decryption functions Name.
+	//	$L=function(a,b,c){b=void 0===b?"":b;c=void 0===c?"":c;var d=new g.cL(a);a.match(/https:\/\/yt.akamaized.net/)||d.set("alr","yes");c&&d.set(b,bL(c));return d};
 	// Pattern -> .*;.&&..set(.,XX(.*));.*;};
 	$prefix ="/\W*.*;\w\&&\w\.set\(\w,";
 	$funcName = "([\$a-zA-Z0-9]{2})";
@@ -42,31 +34,26 @@ function sig_js_decode($player_html){
 	
 		// extract code block from that function
 		// single quote in case function name contains $dollar sign
-		// xm=function(a){a=a.split("");wm.zO(a,47);wm.vY(a,1);wm.z9(a,68);wm.zO(a,21);wm.z9(a,34);wm.zO(a,16);wm.z9(a,41);return a.join("")};
 		// -> bL=function(a){a=a.split("");aL.jl(a,58);aL.NI(a,2);aL.l5(a,35);aL.NI(a,2);aL.jl(a,45);aL.l5(a,4);aL.jl(a,46);return a.join("")};
 	
 		if(preg_match('/'.$func_name.'=function\([a-z]+\){(.*?)}/', $player_html, $matches)){
 			
 			$js_code = $matches[1];
 			
-			// extract all relevant statements within that block
-			// wm.vY(a,1);
+			// extract all relevant statement functions Names
+			// eg: aL.NI(a,2)
 			if(preg_match_all('/([a-z0-9]{2})\.([a-z0-9]{2})\([^,]+,(\d+)\)/i', $js_code, $matches) != false){
 				
 				// must be identical
 				$obj_list = $matches[1];
-				
-				//
 				$func_list = $matches[2];
 				
 				// extract javascript code for each one of those statement functions
 				preg_match_all('/('.implode('|', $func_list).'):function(.*?)\}/m', $player_html, $matches2,  PREG_SET_ORDER);
-				
 				$functions = array();
 				
-				// translate each function according to its use
+				// translate each statement function according to its use
 				foreach($matches2 as $m){
-					
 					if(strpos($m[2], 'splice') !== false){
 						$functions[$m[1]] = 'splice';						
 					} else if(strpos($m[2], 'a.length') !== false){
@@ -76,12 +63,10 @@ function sig_js_decode($player_html){
 					}
 				}
 				
-				// FINAL STEP! convert it all to instructions set
+				// FINAL STEP! concate them to instructions set array
 				$instructions = array();
-				
-				foreach($matches[2] as $index => $name){
+				foreach($matches[2] as $index => $name)
 					$instructions[] = array($functions[$name], $matches[3][$index]);
-				}
 				
 				return $instructions;
 			}
@@ -147,22 +132,12 @@ class YouTubeDownloader {
 		$this->http->close();
 	}
 	
-	// extract youtube video_id from any piece of text
-	public function extractId($str){
-		
-		if(preg_match('/[a-z0-9_-]{11}/i', $str, $matches)){
-			return $matches[0];
-		}
-		
-		return false;
-	}
-	
-	// html code of watch?v=aaa
+	// takes: html content of URL watch?v=videoId
 	private function getInstructions($html){
 		
-		// <script src="//s.ytimg.com/yts/jsbin/player-fr_FR-vflHVjlC5/base.js" name="player/base"></script>
 		
 		// check what player version that video is using
+		// <script src="//s.ytimg.com/yts/jsbin/player-fr_FR-vflHVjlC5/base.js" name="player/base"></script>
 		if(preg_match('@<script\s*src="([^"]+player[^"]+js)@', $html, $matches)){
 			
 			$player_url = $matches[1];
@@ -179,16 +154,14 @@ class YouTubeDownloader {
 			$file_path = $this->storage_dir.'/'.md5($player_url);
 			
 			if(file_exists($file_path)){
-				
 				// unserialize could fail on empty file
 				$str = file_get_contents($file_path);
 				return unserialize($str);
-				
 			} else {
-				
 				$js_code = $this->http->get($player_url);
 				$instructions = sig_js_decode($js_code);
 				
+			 // or write them back 	
 				if($instructions){
 					file_put_contents($file_path, serialize($instructions));
 					return $instructions;
@@ -200,29 +173,44 @@ class YouTubeDownloader {
 	}
 	
 
-	// selector by format: mp4 360, 
+	
 	private function selectFirst($links, $selector){
-		
+	//
+	//	selector by format: mp4 360, 
+	//
+	
 		$result = array();
 		$formats = preg_split('/\s*,\s*/', $selector);
 		
 		// has to be in this order
 		foreach($formats as $f){
-			
 			foreach($links as $l){
-				
-				if(stripos($l['format'], $f) !== false || $f == 'any'){
+				if(stripos($l['format'], $f) !== false || $f == 'any')
 					$result[] = $l;
-				}
 			}
 		}
 		
 		return $result;
 	}
 	
-	// options | deep_links | append_redirector
-	public function getDownloadLinks($id, $selector = false){
+	
+	public function extractId($str){
+	//
+	// extract youtube video_id from any piece of text
+	//
+	
+		if(preg_match('/[a-z0-9_-]{11}/i', $str, $matches)){
+			return $matches[0];
+		}
 		
+		return false;
+	}
+	
+	public function getDownloadLinks($id, $selector = false){
+	//
+	// takes ? , FormatDescriptor
+	//
+
 		// force a specific player origin
 		// $forceLang="&gl=deDE&hl=de&has_verified=1&bpctr=9999999999");
 		$forceLang="";
@@ -253,6 +241,13 @@ class YouTubeDownloader {
 		parse_str($this->http->get($restquery),$data);
 
 			if($data) {			
+				
+				if (Isset($data['status']) && $data['status'] == 'fail') {
+					//print("Youtube API Error: ". $data['errorcode']).PHP_EOL;
+					print($data['errorcode']);
+					return(array($data['errorcode']));
+				}
+				
 				if (isset($data['url_encoded_fmt_stream_map'])) 
 					$fmt_map = explode(',', $data['url_encoded_fmt_stream_map']);
 					
