@@ -35,3 +35,4 @@ echo %WATCH% has ended , stopping %PIDD%
 TASKKILL /F /IM  VLC.exe
 del /F vlc_start.bat 1>NUL 2>NUL
 del /F stream.ts 1>NUL 2>NUL
+del /F vlc.log

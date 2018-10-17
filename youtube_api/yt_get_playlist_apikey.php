@@ -9,14 +9,16 @@
 // https://developers.google.com/youtube/v3/docs/playlistItems/list
 
 	require_once "class.http.api.php";
-
+	$apiPlaylistUrl="https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=40&playlistId=";
+	$apiVideosUrl="https://www.googleapis.com/youtube/v3/videos?part=snippet&id=";
+	
 	// php runtime variables
 	ini_set("default_charset", "UTF-8");
 	//ini_set("memory_limit", "4000M");
 	//ini_set("max_execution_time", 3600*5);
 
 	// NOTE: That APIv3 Key was created using the following guide: [youtubeapi-v3](https://developers.google.com/youtube/v3/getting-started)
-		$apikey = "";
+		$apikey = "AIzaSyBeeymyfYDFB1xaiHDH4lYtbSeeA0dG-Gg";
 	
 	if($apikey =="") { 
 		print(" yt_get_playlist_apikey".PHP_EOL);
@@ -72,12 +74,11 @@
 	// $playlistId = "RDg3ml_WCpbsg";
 	
 	// Now, ask Youtubes v3Api about the Playlists contents.
-	$playlistApi="https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=40&playlistId=";
 	$http=new httpServicesAPI();
 	$http->do_set_options();
 
 	// Now iterate and parse through all resultsets from the response.
-	$restquery = $playlistApi.$playlistId."&key=".$apikey;
+	$restquery = $apiPlaylistUrl.$playlistId."&key=".$apikey;
 	$json=[];
 	$nextPageToken=0;
 	do {
@@ -94,6 +95,17 @@
 				}
 	} while ($nextPageToken=!0);
 		
-	$http->close();
+	/*	
+	// Option -> create a hash from above and fill with the data gathered here:
+	$restquery=$apiVideosUrl."g3ml_WCpbsg"."&key=".$apikey;
+	$json=json_decode($http->get($restquery));
+
+	if (!property_exists($json,"items")) {exit(101);}
+	foreach($json->items as $key) {
+		print_r($key->snippet->thumbnails);
+	}	
+	*/
 	
+	$http->close();
+		
 ?>

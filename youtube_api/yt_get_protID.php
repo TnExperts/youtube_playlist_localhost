@@ -5,7 +5,7 @@
 // Example: yt_get_prot D2v8kI01xDI
 // OKT 2018 
 // simplify Code
-// Force specific player origin line230
+// Optionally force a specific player origin ->line224
 // Add some more verbose Formats
 //
 
@@ -223,6 +223,9 @@ class YouTubeDownloader {
 	// options | deep_links | append_redirector
 	public function getDownloadLinks($id, $selector = false){
 		
+		// force a specific player origin
+		// $forceLang="&gl=deDE&hl=de&has_verified=1&bpctr=9999999999");
+		$forceLang="";
 		$result = array();
 		$instructions = array();
 		
@@ -235,14 +238,8 @@ class YouTubeDownloader {
 			if(!$video_id){
 				return false;
 			}
-			
-			// force a specific player origin
-			$html = $this->http->get("https://www.youtube.com/watch?v={$video_id}"."&gl=deDE&hl=de&has_verified=1&bpctr=9999999999");
-			// us version $html = $http->get("https://www.youtube.com/watch?v={$video_id}"."&gl=US&hl=en&has_verified=1&bpctr=9999999999");
-			
-			// todo: use a more proper way to get the FMT Map:
-			//https://www.youtube.com/get_video_info?video_id=$video_id&eurl=https://youtube.googleapis.com/v/$video_id
-			}
+			$html = $this->http->get("https://www.youtube.com/watch?v={$video_id}".$forceLang);
+		}
 		
 		// age-gate
 		if(strpos($html, 'player-age-gate-content') !== false){
@@ -251,16 +248,27 @@ class YouTubeDownloader {
 			return false;
 		}
 		
-		// http://stackoverflow.com/questions/35608686/how-can-i-get-the-actual-video-url-of-a-youtube-live-stream
-		if(preg_match('@url_encoded_fmt_stream_map["\']:\s*["\']([^"\'\s]*)@', $html, $matches)){
+		// wip: use a more proper way to get the FMT Map:
+		$restquery='https://www.youtube.com/get_video_info?video_id='.$video_id.'&eurl=https://youtube.googleapis.com/v/'.$video_id;
+		parse_str($this->http->get($restquery),$data);
+
+			if($data) {			
+				if (isset($data['url_encoded_fmt_stream_map'])) 
+					$fmt_map = explode(',', $data['url_encoded_fmt_stream_map']);
+					
+			// use fallback solution
+			// http://stackoverflow.com/questions/35608686/how-can-i-get-the-actual-video-url-of-a-youtube-live-stream
+			} else if(preg_match('@url_encoded_fmt_stream_map["\']:\s*["\']([^"\'\s]*)@', $html, $matches)) { 
+				$fmt_map = explode(",", $matches[1]);
+			}
 			
-			$parts = explode(",", $matches[1]);
+			if($fmt_map){
 			
-			foreach($parts as $p){
+			foreach($fmt_map as $p){
 				$query = str_replace('\u0026', '&', $p);
 				parse_str($query, $arr);
-				
-				$url = $arr['url'];
+
+				$url = $arr['url'];				
 				
 				if(isset($arr['sig'])){
 					$url = $url.'&signature='.$arr['sig'];
@@ -268,7 +276,7 @@ class YouTubeDownloader {
 				} else if(isset($arr['signature'])){
 					$url = $url.'&signature='.$arr['signature'];
 				
-				} else if(isset($arr['s'])){					
+				} else if((isset($arr['s']))){
 					// this is probably a VEVO/ads video... signature must be decrypted first! We need instructions for doing that
 					if(count($instructions) == 0){
 						$instructions = (array)$this->getInstructions($html);
@@ -288,6 +296,7 @@ class YouTubeDownloader {
 					'url' => $url,
 					'format' => $format
 				);
+				
 			}
 		}
 		
