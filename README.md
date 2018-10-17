@@ -11,7 +11,7 @@ youtube_api:
 younow:
 - A simple YouNow Comment Interface for use with OBS Text Feature.  
 
-stream_to_localhost:
+stream_tools:
 - A set of batchjobs dealing with http streams and vlc.
 
 -------------------

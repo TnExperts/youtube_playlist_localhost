@@ -32,9 +32,8 @@ IF ["%Link%"] neq [""]  if ["%ERRORLEVEL%"] GTR ["101"] (goto err_api)
 if NOT EXIST yt_playlist.txt (goto err_playlist)
 for /f "tokens=2 delims=:" %%i in ('find /V /C "" yt_playlist.txt') do echo  ..Found%%i Items.
 
-:: WorkAround  for VLC Version 3.01 - Need to route the stream via localhost
-::  OBS-Playlist Bug. Should be fixed in 3.03
-:: todo -> Watchdog cleaning up when execution of the steering batchfile ends. 
+:: OBS-Playlist Bug. Should be fixed in libvlc3.03 
+:: WorkAround - route the stream via localhost  
 ECHO  ..Init VLC-OBS Bridge via http://localhost:8080/gogo.ts 
 start /MIN cmd.exe /c wd.cmd
 
@@ -54,11 +53,11 @@ goto :ende
 
 :sub_stream_file
 REM # https://stackoverflow.com/questions/2323292/assign-output-of-a-program-to-a-variable
-REM # yt_get_prot.php ::> https://gist.github.com/arjunae/6737ecf40956efa3fe4c4d3b45d99f2d
-REM # Quality : mp4-640x360 (Format No 18). Change the php script if you need the Data in another Format.
+REM # Quality : mp4-640x360 (standard Formats No 17/18/36). Extend yt_get_protID.php if you need the Data in another Format.
 for /f %%i in ('%php_bin% yt_get_protID.php %youtube_id%') do set Link=%%i
 REM echo "%Link% : %youtube_id%"
-start /WAIT /MIN /ABOVENORMAL vlc.exe "%Link%" --sout=#duplicate{dst=std{access=file,mux=ts,dst=stream.ts},dst=display} vlc://quit
+start /B /WAIT /MIN /ABOVENORMAL vlc.exe "%Link%" --verbose=1 --file-logging --logfile=vlc.log --sout=#duplicate{dst=std{access=file,mux=ts,dst=stream.ts},dst=display} vlc://quit
+
 exit /b 0
 
 :err_api_key

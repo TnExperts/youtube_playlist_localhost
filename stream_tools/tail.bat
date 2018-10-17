@@ -14,7 +14,7 @@ setlocal ENABLEDELAYEDEXPANSION
 
 set FileName=%1
 REM set FileName="new.txt"
-SET count=0
+SET lineCount=0
 SET trigger=0
 IF NOT EXIST %FileName% EXIT
 
