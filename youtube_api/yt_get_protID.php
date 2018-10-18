@@ -15,10 +15,9 @@ require_once "class.http.api.php";
 // utils.php
 function sig_js_decode($player_html){
 /*	
-
 - Extract the signature decryption Instructions 
 - Return them as arrray
-- used by sig_decipher
+- used by getInstructions
 */
 
 	// Extract Signature decryption functions Name.
@@ -85,6 +84,7 @@ class YouTubeDownloader {
 	private $cookie_dir;
 	private $http;
 	
+	// currently supported : 17,18 and 36
 	private $itag_info = array(
 		5 => "FLV 400x240",
 		6 => "FLV 450x240",
@@ -132,9 +132,9 @@ class YouTubeDownloader {
 		$this->http->close();
 	}
 	
-	// takes: html content of URL watch?v=videoId
 	private function getInstructions($html){
-		
+	// takes: html content of URL watch?v=videoId
+	//	used by getDownloadLinks
 		
 		// check what player version that video is using
 		// <script src="//s.ytimg.com/yts/jsbin/player-fr_FR-vflHVjlC5/base.js" name="player/base"></script>
@@ -172,8 +172,6 @@ class YouTubeDownloader {
 		return false;
 	}
 	
-
-	
 	private function selectFirst($links, $selector){
 	//
 	//	selector by format: mp4 360, 
@@ -192,8 +190,7 @@ class YouTubeDownloader {
 		
 		return $result;
 	}
-	
-	
+		
 	public function extractId($str){
 	//
 	// extract youtube video_id from any piece of text
@@ -304,7 +301,9 @@ class YouTubeDownloader {
 	}
 	
 	private function sig_decipher($signature, $instructions){
-		
+	// parse decryption instructions created by sig_js_decode
+	// used by getDownloadLinks
+	
 		foreach($instructions as $opt){
 			
 			$command = $opt[0];

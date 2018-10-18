@@ -9,6 +9,7 @@ setlocal enabledelayedexpansion
 set PATH=%PATH%;C:\Program Files\VideoLAN\VLC;C:\Program Files (x86)\VideoLAN\VLC
 set php_bin=..\php\php.exe 
 set link=%1
+REM Starcraft Signature Playlist set link="PLN2ZW0DrP0Bkcn-nUR2QaGY7DQZF_nXm"
 set windowTitle=_Playlist_Streamer_
 TITLE %windowTitle%
 
@@ -53,7 +54,7 @@ goto :ende
 
 :sub_stream_file
 REM # https://stackoverflow.com/questions/2323292/assign-output-of-a-program-to-a-variable
-REM # Quality : mp4-640x360 (standard Formats No 17/18/36). Extend yt_get_protID.php if you need the Data in another Format.
+REM # Quality : 18/mp4/360 (standard Formats No 17/18/36). Extend yt_get_protID.php if you need the Data in another Format.
 for /f %%i in ('%php_bin% yt_get_protID.php %youtube_id%') do set Link=%%i
 REM  echo "%Link% : %youtube_id%"
 set skipper=0
