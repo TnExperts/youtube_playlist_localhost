@@ -56,8 +56,13 @@ REM # https://stackoverflow.com/questions/2323292/assign-output-of-a-program-to-
 REM # Quality : mp4-640x360 (standard Formats No 17/18/36). Extend yt_get_protID.php if you need the Data in another Format.
 for /f %%i in ('%php_bin% yt_get_protID.php %youtube_id%') do set Link=%%i
 REM  echo "%Link% : %youtube_id%"
-if [150] equ [%Link%]  (echo ..Skipping GeoBlocked %youtube_id%) 
-start /B /WAIT /MIN /ABOVENORMAL vlc.exe "%Link%" --verbose=1 --file-logging --logfile=vlc.log --sout=#duplicate{dst=std{access=file,mux=ts,dst=stream.ts},dst=display} vlc://quit
+set skipper=0
+if [150] equ [%Link%]  (echo ..Skipping GeoBlocked %youtube_id% && set skipper=1)
+if [400] equ [%Link%]  (echo ..API Error - bad request - Skipping %youtube_id%  && set skipper=1)
+if [401] equ [%Link%]  (echo ..API Error - unauthorized - Skipping %youtube_id%  && set skipper=1)
+if [403] equ [%Link%]  (echo ..API Error - forbidden - Skipping %youtube_id%  && set skipper=1)
+if [404] equ [%Link%]  (echo ..API Error - not found - Skipping %youtube_id%  && set skipper=1)
+if [0] equ [%skipper%] (start /B /WAIT /MIN /ABOVENORMAL vlc.exe "%Link%" --verbose=1 --file-logging --logfile=vlc.log --sout=#duplicate{dst=std{access=file,mux=ts,dst=stream.ts},dst=display} vlc://quit)
 exit /b 0
 
 :err_api_key
@@ -69,9 +74,9 @@ pause
 exit
 
 :err_api
-echo ...Error connecting to youtube API. Exitcode: %ERRORLEVEL% 
+echo ...Error connecting to youtubes playlist API. Exitcode: %ERRORLEVEL% 
 pause
-EXIT
+exit
 
 :err_playlist
 echo ...Error creating playlist Exitcode: %ERRORLEVEL% 
