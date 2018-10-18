@@ -26,7 +26,7 @@
 		print("see https://developers.google.com/youtube/v3/getting-started".PHP_EOL);
 		exit(101);
 	}
-	
+
 	// Parse argv - require console and minimum one parameter. 
 	if(PHP_SAPI !== 'cli') { 
 		exit(0);
@@ -43,35 +43,27 @@
 	// Differenciate a single Video ID from a Playlist ID
 	// https://linuxpanda.wordpress.com/2013/07/24/ultimate-best-regex-pattern-to-get-grab-parse-youtube-video-id-from-any-youtube-link-url/
 
-	// Video id is 11 characters in length
+	// Video id : 11 characters in length
 	$video_pattern = '~(?:http|https|)(?::\/\/|)(?:www.|)(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/ytscreeningroom\?v=|\/feeds\/api\/videos\/|\/user\S*[^\w\-\s]|\S*[^\w\-\s]))([\w\-]{11})[a-z0-9;:@#?&%=+\/\$_.-]*~i';
 	$videoId = (preg_replace($video_pattern, '$1', $url));
 
-	// Playlist id is 12 or more characters in length
+	// Playlist id : 12 or more characters in length
 	$playlist_pattern = '~(?:http|https|)(?::\/\/|)(?:www.|)(?:youtu\.be\/|youtube\.com(?:\/embed\/|\/v\/|\/watch\?v=|\/ytscreeningroom\?v=|\/feeds\/api\/videos\/|\/user\S*[^\w\-\s]|\S*[^\w\-\s]))([\w\-]{12,})[a-z0-9;:@#?&%=+\/\$_.-]*~i';
 	$playlistId = (preg_replace($playlist_pattern, '$1', $url));
 
-	// BUG: above stuff seems to interpret a 11 char video id as a playlist.
+	// BUG: Playlist_pattern  interprets a 11 char video id as a playlist.
 	// Check and cleanse Link
 	if(strlen($playlistId) <12) $playlistId="";
-	if(strpos($playlistId,$videoId) !== false) $videoID="";
-		
-	//Okay -We have a VideoLink. So just print and bail.
-	//todo: sanity check for non-existant video link
+	if(strpos($playlistId,"http") !==false) $playlistId="";
+	if(strpos($playlistId,$videoId) !== false) $videoId="";	
+
+	// Handle videoId / playlistId
 	if ($videoId !== "" && $playlistId=="") {
 		print $videoId.PHP_EOL;
-		exit(0);
-	} 
-	
-	// Playlist: So set feed URL	
-	if ($videoId==""){
+		exit(0); // only videoid - just print and bail. 
+	} else if ($videoId=="") { // Playlist: So set feed URL	
 		$feedURL = 'https://www.youtube.com/playlist?list='.$playlistId;
-	} else { 
-		$feedURL= $url;
 	}
-
-	// playlist id sample https://www.youtube.com/watch?v=g3ml_WCpbsg&list=RDg3ml_WCpbsg
-	// $playlistId = "RDg3ml_WCpbsg";
 	
 	// Now, ask Youtubes v3Api about the Playlists contents.
 	$http=new httpServicesAPI();
@@ -83,7 +75,8 @@
 	$nextPageToken=0;
 	do {
 				$json=json_decode($http->get($restquery));
-				if (!property_exists($json,"items")) {exit(101);}
+				//print_r($json);
+				if (!property_exists($json,"items")) {exit(102);}
 				foreach($json->items as $key) {
 					print ($key->snippet->resourceId->videoId.";'".$key->snippet->title."'".PHP_EOL);
 				}
