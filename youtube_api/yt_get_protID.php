@@ -245,7 +245,7 @@ class YouTubeDownloader {
 					return(array($data['errorcode']));
 				}
 				
-				if (isset($data['url_encoded_fmt_stream_map'])) 
+				if (isset($data['url_encoded_fmt_stream_map']))  // optional - append $data['adaptive_fmts']
 					$fmt_map = explode(',', $data['url_encoded_fmt_stream_map']);
 					
 			// use fallback solution

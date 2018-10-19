@@ -4,20 +4,21 @@ REM removed dependency to "youtube-dl" and "ffmpeg"
 REM Oct 2018, Marcedo@habMalNeFrage.de
 REM .Engeneered to survive BlackHoles :)
 
+REM Choose to use user defined Terminal colours
+:: call :ColouredTerminal
+
 chcp 65001 1>NUL
-setlocal enabledelayedexpansion
 set PATH=%PATH%;C:\Program Files\VideoLAN\VLC;C:\Program Files (x86)\VideoLAN\VLC
 set php_bin=..\php\php.exe 
 set link=%1
-REM Starcraft Signature Playlist set link="PLN2ZW0DrP0Bkcn-nUR2QaGY7DQZF_nXm"
 set windowTitle=_Playlist_Streamer_
 TITLE %windowTitle%
 
 where /Q vlc.exe
 IF [%ERRORLEVEL%] gtr [0] (
-echo Please install VLC first. -> http://www.videolan.org/
-pause
-exit
+	echo Please install VLC first. -> http://www.videolan.org/
+	pause
+	exit
 )
 
 echo        --== Route a youtube htttp stream via localhost ==--
@@ -83,5 +84,25 @@ exit
 echo ...Error creating playlist Exitcode: %ERRORLEVEL% 
 pause
 exit
+
+:ColouredTerminal
+:: Change current Batchfiles Visuals
+reg query HKCU\Console\TinyTonCMD /v runs 1>NUL
+if %ERRORLEVEL% EQU 1  (
+	echo Windows Registry Editor Version 5.00 >>term.reg
+	echo [-HKEY_CURRENT_USER\Console\TinyTonCMD] >>term.reg
+	echo [HKEY_CURRENT_USER\Console\TinyTonCMD] >>term.reg
+	echo "FontSize"=dword:000d0000 >>term.reg
+	echo "ScreenColors"=dword:0000000a >>term.reg
+	echo "WindowAlpha"=dword:000000e7 >>term.reg
+	echo "ScreenBufferSize"=dword:07d00080 >>term.reg
+	reg import term.reg 1>NUL
+	del /f term.reg 
+	reg ADD HKCU\Console\TinyTonCMD /v runs /t REG_DWORD /d 1
+	start "TinyTonCMD" %~nx0
+EXIT
+) else (
+	reg delete HKCU\Console\TinyTonCMD\ /v runs /f 1>NUL
+)
 
 :ende
