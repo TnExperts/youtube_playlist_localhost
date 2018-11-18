@@ -9,8 +9,8 @@ class httpServicesAPI
   protected $cookiejar_filename='Curl';
   protected $header=[];
   protected $active_cookies;
-
-
+  public $returnStatus;
+  
   function __construct()
   {
 
@@ -53,9 +53,10 @@ class httpServicesAPI
   {
     curl_setopt($this->curl, CURLOPT_RETURNTRANSFER,1);
     $bla=curl_exec($this->curl);
+    $this->returnStatus=curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
     return $bla;
   }
-
+  
   public function debug()
   {
     return [
@@ -85,6 +86,16 @@ class httpServicesAPI
   public function get($url, $redirectLoc=false)
   {
     curl_setopt($this->curl, CURLOPT_HTTPHEADER, $this->header);
+    curl_setopt($this->curl, CURLOPT_URL, $url);
+    return $redirectLoc===false?$this->execute():$this->debug();
+  }
+  
+  public function checkURL($url, $redirectLoc=false)
+  {
+    curl_setopt($this->curl,CURLOPT_CONNECTTIMEOUT,10);
+    curl_setopt($this->curl,CURLOPT_HEADER,true);
+    curl_setopt($this->curl,CURLOPT_NOBODY,true);
+    curl_setopt($this->curl,CURLOPT_RETURNTRANSFER,true);
     curl_setopt($this->curl, CURLOPT_URL, $url);
     return $redirectLoc===false?$this->execute():$this->debug();
   }

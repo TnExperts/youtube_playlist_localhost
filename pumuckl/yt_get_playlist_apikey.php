@@ -2,7 +2,7 @@
 
 // Simple and Fast YouTube PlaylistItems fetcher.
 // https://github.com/arjunae/youtube_playlist_localhost
-// alpha test version v0.11 :) - Marcedo@habMalNeFrage.de
+//  version v0.9beta :) - Marcedo@habMalNeFrage.de
 // License BSD3Clause 
 
 // PlaylistItems API Description :
@@ -11,15 +11,14 @@
 	require_once "class.http.api.php";
 	$apiPlaylistUrl="https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=40&playlistId=";
 	$apiVideosUrl="https://www.googleapis.com/youtube/v3/videos?part=snippet&id=";
-	
+
 	// php runtime variables
 	ini_set("default_charset", "UTF-8");
 	//ini_set("memory_limit", "4000M");
 	//ini_set("max_execution_time", 3600*5);
-
 	// NOTE: That APIv3 Key was created using the following guide: [youtubeapi-v3](https://developers.google.com/youtube/v3/getting-started)
 		$apikey = "AIzaSyBeeymyfYDFB1xaiHDH4lYtbSeeA0dG-Gg";
-	
+
 	if($apikey =="") { 
 		print(" yt_get_playlist_apikey".PHP_EOL);
 		print ("To avoid abuse, Feel Free to insert your own Youtube apikey :)".PHP_EOL);
@@ -82,7 +81,7 @@
 				}
 				if (property_exists($json,"nextPageToken")) {
 					$nextPageToken=$json->nextPageToken;
-					$restquery = $playlistApi.$playlistId."&pageToken=".$nextPageToken."&key=".$apikey;
+					$restquery = $apiPlaylistUrl.$playlistId."&pageToken=".$nextPageToken."&key=".$apikey;
 				} else { 
 					break; 
 				}

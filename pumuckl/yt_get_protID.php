@@ -3,14 +3,34 @@
 // Modified to be command line Invoked on a youTube ID or Link.
 // Returns the fully qualified URL to the video source 
 // Example: yt_get_prot D2v8kI01xDI
-// OKT 2018 
-// simplify Code
-// Optionally force a specific player origin ->line224
-// Add some more verbose Formats
-//
+// OKT 2018  
+// -- simplify Code
+// -- Optionally force a specific player origin ->line224
+// -- Add some more verbose Formats
+// 18.NOV 18 
+// -- Improved Error Handling
+
+/* Some Hints about adapting sig_js_decode to reflect Youtubes signature changes:
+
+1) start a youtube video - view html-source - search for the string /jsbin/player
+    download or view above found player.js version :
+    view-source:https://www.youtube.com/yts/jsbin/player-vflmQAIkc/de_DE/base.js
+2) begin at last youtube changes Position - which also introduced "yt.akamaized.net"
+    look at the stuff called after : "d.set(b,(0,window.encodeURIComponent)(pL((0,window.decodeURIComponent)(c))));return d};"
+    find && analyze the function names b, pL , c (eg search for stuff like bL=function)
+    doin that, youll find (nov18)
+       pL=function(a){a=a.split("");oL.uD(a,31);oL.iZ(a,39);oL.uD(a,1);return a.join("")};
+    which seems quite similar to what was called before the change:
+      bL=function(a){a=a.split("");aL.jl(a,58);aL.NI(a,2);aL.l5(a,35);aL.NI(a,2);aL.jl(a,45);aL.l5(a,4);aL.jl(a,46);return a.join("")};
+    Ok. havin verified the (otherwise meaningless) functions name - pL so change the first regexp to match the changed function call in 4)
+      d.set("alr","yes");c&&d.set(b,bL(c));return d};
+    changed to:
+      d.set(b,(0,window.encodeURIComponent)(pL((0,window.decodeURIComponent)(c))));return d};
+
+3) So all you need to do will be to adapt the regexps prefix: $prefix ="/\W*.*;\w&&\w.set(\w,/"; to include the added braces.
+*/
 
 require_once "class.http.api.php";
-
 
 // utils.php
 function sig_js_decode($player_html){
@@ -21,7 +41,8 @@ function sig_js_decode($player_html){
 */
 
 	// Extract Signature decryption functions Name.
-	//	$L=function(a,b,c){b=void 0===b?"":b;c=void 0===c?"":c;var d=new g.cL(a);a.match(/https:\/\/yt.akamaized.net/)||d.set("alr","yes");c&&d.set(b,bL(c));return d};
+	//	sep18 $L=function(a,b,c){b=void 0===b?"":b;c=void 0===c?"":c;var d=new g.cL(a);a.match(/https:\/\/yt.akamaized.net/)||d.set("alr","yes");c&&d.set(b,bL(c));return d};
+	// Hints: nov18  d.set("alr","yes");c&&d.set(b,(0,window.encodeURIComponent)(pL((0,window.decodeURIComponent)(c))));return d};
 	// Pattern -> .*;.&&..set(.,XX(.*));.*;};
 	$prefix ="/\W*.*;\w\&&\w\.set\(\w,";
 	$funcName = "([\$a-zA-Z0-9]{2})";
@@ -71,7 +92,7 @@ function sig_js_decode($player_html){
 			}
 		}
 	}
-	
+
 	return false;
 }
 
@@ -79,7 +100,6 @@ function sig_js_decode($player_html){
 // YouTube is capitalized twice because that's how youtube itself does it:
 // https://developers.google.com/youtube/v3/code_samples/php
 class YouTubeDownloader {
-		
 	private $storage_dir;
 	private $cookie_dir;
 	private $http;
@@ -152,7 +172,7 @@ class YouTubeDownloader {
 			
 			// try to find instructions list already cached from previous requests...
 			$file_path = $this->storage_dir.'/'.md5($player_url);
-			
+					
 			if(file_exists($file_path)){
 				// unserialize could fail on empty file
 				$str = file_get_contents($file_path);
@@ -160,11 +180,14 @@ class YouTubeDownloader {
 			} else {
 				$js_code = $this->http->get($player_url);
 				$instructions = sig_js_decode($js_code);
-				
-			 // or write them back 	
+
+				// or write them back 	
 				if($instructions){
 					file_put_contents($file_path, serialize($instructions));
 					return $instructions;
+				} else {
+					print("ERR:102");
+					exit(102); // Api Error
 				}
 			}
 		}
@@ -232,20 +255,20 @@ class YouTubeDownloader {
 			print("AGE-Gated - stop ").PHP_EOL;
 			return false;
 		}
-		
+
 		// wip: use a more proper way to get the FMT Map:
 		$restquery='https://www.youtube.com/get_video_info?video_id='.$video_id.'&eurl=https://youtube.googleapis.com/v/'.$video_id;
 		parse_str($this->http->get($restquery),$data);
-
 			if($data) {			
 				
 				if (Isset($data['status']) && $data['status'] == 'fail') {
 					//print("Youtube API Error: ". $data['errorcode']).PHP_EOL;
-					print($data['errorcode']);
-					return(array($data['errorcode']));
+					print("ERR:".$data['errorcode']);
+					exit($data['errorcode']); // Api Error
+					//return("ERR:".array($data['errorcode']));
 				}
-				
-				if (isset($data['url_encoded_fmt_stream_map']))  // optional - append $data['adaptive_fmts']
+
+				if (isset($data['url_encoded_fmt_stream_map'])) 
 					$fmt_map = explode(',', $data['url_encoded_fmt_stream_map']);
 					
 			// use fallback solution
@@ -269,6 +292,7 @@ class YouTubeDownloader {
 					$url = $url.'&signature='.$arr['signature'];
 				
 				} else if((isset($arr['s']))){
+
 					// this is probably a VEVO/ads video... signature must be decrypted first! We need instructions for doing that
 					if(count($instructions) == 0){
 						$instructions = (array)$this->getInstructions($html);
@@ -325,6 +349,11 @@ class YouTubeDownloader {
 		return trim($signature);
 	}
 	
+	public function getHTTPStatus($link) {
+		$out=$this->http->checkURL($link);
+		return($this->http->returnStatus);
+	}
+	
 }
 
 $videoList = array();
@@ -338,12 +367,19 @@ if(PHP_SAPI === 'cli') {
 for($i = 0; $i < sizeof($videoList); $i++):
 	$yt = new YouTubeDownloader();
 	$links = $yt->getDownloadLinks("https://www.youtube.com/watch?v=$videoList[$i]");
-	
 	if(array_key_exists($quality,$links) !== false) {
-		print($links[$quality]["url"]);		
+		$link=$links[$quality]["url"];
+		$linkStatus=$yt->getHTTPStatus($links[$quality]["url"]);		
+		if ($linkStatus!=200) {
+			print("ERR:".$linkStatus);
+			exit($linkStatus); // Protected Video
+		}	
+		print($links[$quality]["url"]);
 	} else {
+		print("ERR:101");
 		exit(101); // Api Error
 	}
+
 	$yt->close();
 endfor;
 
